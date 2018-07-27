@@ -10,23 +10,34 @@ def volume_module(msg, check, rest):
 
 def time_module(msg, check, rest):
 	if "minute" in msg and int(re.search(r'\d+', msg).group()):
-		if check: return {"out": "action", "inp": "action"}
+		if check: return {"out": None, "inp": None}
 		print('Will run action in ' + re.search(r'\d+', msg).group())
 		execute(rest)
 	else: return False
+
+def weather_module(msg, check, rest):
+	if "weather" in msg:
+		if check: return {"out": "text", "inp": None}
+		print('Weather ran')
+		execute("60"+rest)
+	else: return False
+
 
 def cleanSentence(msg): 
 	msg = msg.lower()
 	return ' '.join([word for word in msg.split(" ") if word not in stopwords])
 
-modules = [volume_module, time_module]
+modules = [volume_module, time_module, weather_module]
 def execute(msg):
 	clean = cleanSentence(msg).split(" ")
-	for i in range(len(clean)):
+	j = 0
+	for i in range(len(clean) + 1):
 		for module in modules:
-			if module(" ".join(clean[:i]), True, " ".join(clean[i:])):
-				module(" ".join(clean[:i]), False, " ".join(clean[i:]))
+			if module(" ".join(clean[j:i]), True, " ".join(clean[i:])):
+				module(" ".join(clean[j:i]), False, " ".join(clean[i:]))
+				j = i
+				return
 			
 
-phrase = "change volume to 50 percent on my laptop in 10 minutes"
+phrase = "in 10 minutes change my laptop volume to the current weather"
 execute(phrase)
