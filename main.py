@@ -10,7 +10,7 @@ def volume_module(msg, check, rest):
 
 def time_module(msg, check, rest):
 	if "minute" in msg and int(re.search(r'\d+', msg).group()):
-		if check: return {"out": None, "inp": None}
+		if check: return {"out": None, "inp": "text"}
 		print('Will run action in ' + re.search(r'\d+', msg).group())
 		execute(rest)
 	else: return False
@@ -30,14 +30,23 @@ def cleanSentence(msg):
 modules = [volume_module, time_module, weather_module]
 def execute(msg):
 	clean = cleanSentence(msg).split(" ")
+	parsed = []
 	j = 0
 	for i in range(len(clean) + 1):
 		for module in modules:
-			if module(" ".join(clean[j:i]), True, " ".join(clean[i:])):
-				module(" ".join(clean[j:i]), False, " ".join(clean[i:]))
+			test = module(" ".join(clean[j:i]), True, " ".join(clean[i:]))
+			if test:
+				#module(" ".join(clean[j:i]), False, " ".join(clean[i:]))
+				parsed.append({module: test, "msg": " ".join(clean[j:i]), "rest": " ".join(clean).replace(" ".join(clean[j:i]), "")})
 				j = i
-				return
-			
-
-phrase = "in 10 minutes change my laptop volume to the current weather"
+	print(parsed)
+	#for key, value in parsed.items():
+	#	if
+def possible(arr):
+	if len(arr) == 1 or len(arr) == 0: return True
+	for i in range(len(arr) - 1):
+		if arr[i]["out"] != arr[i+1]["inp"]: return False
+	return True
+#print(possible([{"out": "action", "inp": "text"}, {"out": None, "inp": "text"}])) #set volume to 50 in 5 minutes
+phrase = "change my laptop volume to the current weather in 10 minutes"
 execute(phrase)
