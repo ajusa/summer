@@ -42,7 +42,7 @@ def notify_module(msg, check, rest):
 	else: return False
 
 def youtube_module(msg, check, rest):
-	if "youtube" in msg.lower().split(" "):
+	if "youtube" in msg.lower() and not re.findall(r'(https?://[^\s]+)', msg):
 		if check: return {"out": "text", "inp": "text"}
 		query_string = urllib.parse.urlencode({"search_query" : msg})
 		html_content = urllib.request.urlopen("http://www.youtube.com/results?" + query_string)
@@ -62,7 +62,7 @@ def play_module(msg, check, rest):
 def cleanSentence(msg): 
 	#msg = msg.lower()
 	return msg
-	return ' '.join([word for word in msg.split(" ") if word not in stopwords])
+	#return ' '.join([word for word in msg.split(" ") if word not in stopwords])
 
 modules = [volume_module, time_module, weather_module, notify_module,play_module, youtube_module]
 def execute(msg):
