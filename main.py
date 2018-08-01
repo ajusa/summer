@@ -9,10 +9,10 @@ devices = ["laptop", "roku", "dad's laptop", "tv"]
 
 def volume_module(msg, check, rest):
 	def translate(value):
-	    leftSpan = 100
-	    rightSpan = 65535
-	    valueScaled = float(value - 0) / float(leftSpan)
-	    return 0 + (valueScaled * rightSpan)
+		leftSpan = 100
+		rightSpan = 65535
+		valueScaled = float(value - 0) / float(leftSpan)
+		return 0 + (valueScaled * rightSpan)
 	if "volume" in msg.lower() and re.findall(r'[0-9]+', msg) and re.findall(r'[0-9]+', msg)[0]:
 		if check: return {"out": "action", "inp": "text"}
 		os.system("nircmd.exe setsysvolume " + str(translate(int(re.findall(r'[0-9]+', msg)[0]))))
@@ -27,16 +27,17 @@ def time_module(msg, check, rest):
 	else: return False
 
 def weather_module(msg, check, rest):
-	if "weather" in msg.lower().split(" "):
+	if "weather" in msg.lower().split(" ") or "temperature" in msg.lower().split(" "):
 		if check: return {"out": "text", "inp": None}
 		weather = Weather(unit=Unit.FAHRENHEIT)
 		temp = weather.lookup(2436453).condition.temp
-		execute("It is "+temp+" degrees"+rest)
+		execute(" ".join(("It is "+temp+" degrees").split(" ")[::-1]) + rest)
 	else: return False
 
 def notify_module(msg, check, rest):
 	if "notification" in msg.lower().split(" "):
 		if check: return {"out": None, "inp": "text"}
+		msg = " ".join(msg.split(" ")[::-1])
 		toaster = ToastNotifier()
 		toaster.show_toast("Summer", msg.replace("notification", ""))
 	else: return False
@@ -44,6 +45,7 @@ def notify_module(msg, check, rest):
 def youtube_module(msg, check, rest):
 	if "youtube" in msg.lower() and not re.findall(r'(https?://[^\s]+)', msg):
 		if check: return {"out": "text", "inp": "text"}
+		msg = " ".join(msg.split(" ")[::-1])
 		query_string = urllib.parse.urlencode({"search_query" : msg})
 		html_content = urllib.request.urlopen("http://www.youtube.com/results?" + query_string)
 		search_results = re.findall(r'href=\"\/watch\?v=(.{11})', html_content.read().decode())
@@ -59,14 +61,16 @@ def play_module(msg, check, rest):
 		execute(rest)
 	else: return False
 
-def cleanSentence(msg): 
-	#msg = msg.lower()
-	return msg
-	#return ' '.join([word for word in msg.split(" ") if word not in stopwords])
+def print_module(msg, check, rest):
+	if "print" in msg.lower().split(" "):
+		if check: return {"out": None, "inp": "text"}
+		print(" ".join(msg.replace("print", "").split(" ")[::-1]))
+		execute(rest)
+	else: return False
 
-modules = [volume_module, time_module, weather_module, notify_module,play_module, youtube_module]
+modules = [volume_module, time_module, weather_module, notify_module,play_module, youtube_module, print_module]
 def execute(msg):
-	clean = cleanSentence(msg).split(" ")
+	clean = msg.split(" ")
 	parsed = []
 	j = 0
 	for i in range(len(clean) + 1):
@@ -75,21 +79,11 @@ def execute(msg):
 			if test:
 				parsed.append({"func": module, "module": test, "msg": " ".join(clean[j:i]), "rest": " ".join(clean).replace(" ".join(clean[j:i]), "")})
 				j = i
-	print(parsed)
-	if(len(parsed) > 0):
-		parsed[0]["func"](parsed[0]["msg"], False, parsed[0]["rest"])
+	if(len(parsed) > 0): parsed[0]["func"](parsed[0]["msg"], False, parsed[0]["rest"])
 
-def possible(arr):
-	if len(arr) == 1 or len(arr) == 0: return True
-	for i in range(len(arr) - 1):
-		if arr[i]["out"] != arr[i+1]["inp"]: return False
-	return True
-#print(possible([{"out": "action", "inp": "text"}, {"out": None, "inp": "text"}])) #set volume to 50 in 5 minutes
-phrase = "change my laptop volume to the current weather in 10 minutes"
-phrase = "set volume to 0 in 1 minute"
-phrase = "play youtube take on me in 5 seconds and change volume to 5"
-phrase = "play youtube never gonna give you up and change volume to 0"
-phrases = phrase.split("and")
-for i, text in enumerate(phrases):
-	execute(" ".join(text.split(" ")[::-1]))
-
+print("Hi! Type what you want to say to me.")
+while True:
+		phrase = input()
+		phrases = phrase.split("and")
+		for i, text in enumerate(phrases):
+			execute(" ".join(text.split(" ")[::-1]))
